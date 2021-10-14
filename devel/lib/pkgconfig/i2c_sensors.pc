@@ -1,0 +1,8 @@
+prefix=/home/pi/catkin_ws/devel
+
+Name: i2c_sensors
+Description: Description of i2c_sensors
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
