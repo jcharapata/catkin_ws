@@ -2,6 +2,7 @@
 
 # =============================================================================
 # Peter G. Adamczyk 
+# 2018-10
 # Updated 2021-02-26
 # =============================================================================
 
@@ -17,27 +18,50 @@ from mobrob_util.msg import ME439WheelSpeeds
 # =============================================================================
 #     Set up a time course of commands
 # =============================================================================
-    
-# Use a new structure: 
-# structure: 
-# np.array([[duration, left_wheel_speed, right_wheel_speed], [duration, left_wheel_speed, right_wheel_speed], ...]
-# 
-# Example: Move Forward and Back, 2s each, 0.3 meters per second: 
-stage_settings = np.array( [ [0.0, 0.0, 0.0], [5.0,0.3, 0.3], [5.0, -0.3, -0.3], [2.0, 0.0, 0.0]] )
-# Example: forward, turn, return to home, turn. 
-stage_settings = np.array( [ [0,0,0],[3,0.100,0.100],[1,0,0],[1,0.196,-0.196],[1,0,0],[3,0.100,0.100],[1,0,0],[1,-0.196,0.196],[1,0,0]] )
+
+# =============================================================================
+# # NEW: Determine paths by lines, arcs, pivots and pauses, and create a 
+# #  "robot" object to plan it for you. 
+# =============================================================================
+
+# Get parameters from rosparam
+wheel_width = rospy.get_param('/wheel_width_model') # All you have when planning is a model - you never quite know the truth! 
+body_length = rospy.get_param('/body_length')
+wheel_diameter = rospy.get_param('/wheel_diameter_model')
+wheel_radius = wheel_diameter/2.0
+
+####    CODE HERE:
+# Create a mobile robot object from the Imported module "me439_mobile_robot_class"
+# REMEMBER to call the right file (i.e., use the _HWK if needed)
+import me439_mobile_robot_class_v01 as m439rbt
+robot = m439rbt.robot(wheel_width, body_length, wheel_radius)
+
+####    CODE HERE:
+# Specify stage_settings as a collections of lines, arcs, pivots and pauses
+# Use the functions in your Class (imported above as "me439rbt")
+# Example: Move Forward and Back, 0.3 meters per second:  
+# ** NOTE the signs on the backward driving: backward speed and backward distance! 
+stage_settings = np.array( [ robot.plan_pause(1.0), robot.plan_line(0.3, 1.5), robot.plan_line(-0.3, -1.5), robot.plan_pause(2.0)] )
+# Example: pause, forward, pause, pivot right 180 deg, pause, return to home, pause, turn, pause. 
+# ** NOTE the signs on the Omega and Angle for the "plan_pivot" calls! 
+stage_settings = np.array( [ robot.plan_pause(1.0), robot.plan_line(0.1, 0.3), robot.plan_pause(1.0), robot.plan_pivot(-1.0, -np.pi), robot.plan_pause(1.0), robot.plan_line(0.1, 0.3), robot.plan_pause(1.0), robot.plan_pivot(1.0, np.pi), robot.plan_pause(1.0)] )
+####    CODE HERE: ADD YOUR OWN  
+
 
 # Convert it into a numpy array
 stage_settings_array = np.array(stage_settings)
 # Convert the first column to a series of times (elapsed from the beginning) at which to switch settings. 
 stage_settings_array[:,0] = np.cumsum(stage_settings_array[:,0],0)  # cumsum = "cumulative sum". The last Zero indicates that it should be summed along the first dimension (down a column). 
 
+# =============================================================================
+# # END of new section on planning with lines, arcs, pivots and pauses
+# =============================================================================
 
 
 # Publish desired wheel speeds at the appropriate time. 
 def talker(): 
-    # Actually launch a node called "set_desired_wheel_speeds"
-    rospy.init_node('set_desired_wheel_speeds', anonymous=False)
+    # Actually launch a node called "set_desired_wheel_speeds_by_path_specs"
+    rospy.init_node('set_desired_wheel_speeds_by_path_specs', anonymous=False)
 
     # Create the publisher. Name the topic "sensors_data", with message type "Sensors"
     pub_speeds = rospy.Publisher('/wheel_speeds_desired', ME439WheelSpeeds, queue_size=10)
