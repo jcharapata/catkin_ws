@@ -28,7 +28,7 @@
 
 
   <group ns="robot_control">
-    <node pkg="mobrob" name="set_desired_wheel_speeds" type="set_desired_wheel_speeds_by_path_specs.py"/>
+    <node pkg="mobrob" name="set_desired_wheel_speeds" type="set_desired_wheel_speeds.py"/>
   </group>
   
   
