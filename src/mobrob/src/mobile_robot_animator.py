@@ -3,7 +3,7 @@
 # =============================================================================
 # Peter G. Adamczyk 
 # 2018-10-11
-# Updated 2021-02-26
+# Updated 2021-10-19
 # =============================================================================
 
 import matplotlib.pyplot as plt
@@ -57,7 +57,7 @@ def animate_robot(robot):
     plt.ylim(-1, 1)
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.title('Robot and Path')
+    plt.title(rospy.get_name())  # Title the plot with the name of the node, obtained from ROS.
     
     dt = 0.5   # seconds
     
